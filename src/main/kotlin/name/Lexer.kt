@@ -1,16 +1,13 @@
 package name
 
-class Type (
-    val name: String,
-    val repr: Char? = null
-)
+import name.operators.*
 
 class Lexer (
-    val text: String
+    private val text: String
         ) {
 
-        var pos = Position(-1, 1)
-        var currChar: Char? = null
+        private var pos = Position(-1, 1)
+        private var currChar: Char? = null
 
     /*
      *  Operators and Constants
@@ -18,23 +15,13 @@ class Lexer (
     private val DIGITS      = "-1234567890"
     private val TT_INT      = Type("INT")
     private val TT_FLOAT    = Type("FLOAT")
-    private val TT_PLUS     = Type("PLUS", '+')
-    private val TT_MINUS    = Type("MINUS", '-')
-    private val TT_MUL      = Type("MUL", '*')
-    private val TT_DIV      = Type("DIV", '/')
-    private val TT_LPAREN   = Type("LPAREN", '(')
-    private val TT_RPAREN   = Type("RPAREN", ')')
-
-    // Put into a list so that later on it's easier to identify which operator exist
-    private val OPERATORS: List<Type> = listOf(
-        TT_PLUS, TT_MINUS, TT_MUL, TT_DIV, TT_LPAREN, TT_RPAREN
-    )
 
     // Run this to initialize the Lexer class
     init {
         this.next()
         this.tokenize()
     }
+
 
     private fun parseNumber(numStr: String): Token {
 
@@ -47,11 +34,11 @@ class Lexer (
         };
 
         // If it only has one it's a float
-        if (numStr.count { it == '.'} == 1) return Token(TT_FLOAT.name, numStr.toFloat())
+        if (numStr.count { it == '.'} == 1) return Token(TT_FLOAT.type, numStr.toFloat())
 
 
         // Otherwise it's gonna be an integer
-        return Token(TT_INT.name, numStr.toInt())
+        return Token(TT_INT.type, numStr.toInt())
 
     }
 
@@ -86,6 +73,7 @@ class Lexer (
             )
 
         }
+
 
         // Scans for a string until the end of quotation
         fun scanStringLiteral(): String {
@@ -138,14 +126,16 @@ class Lexer (
                 continue
             }
 
-            // Get an operator if possible
-            val operatorIdx = OPERATORS.map { it.repr }.indexOf(this.currChar)
+            val findOperator = Operator.find(this.currChar.toString())
+
+
+//            println(Operator.operators)
 
             // If the curr character is an operator, then parse the current temp and add the operator by itself
-            if (operatorIdx > -1) {
-                ret.add(Token(OPERATORS[operatorIdx].name))
-
+            if (findOperator > -1) {
                 parseTemp()
+                ret.add(Token(Operator.operators[findOperator].name))
+
             } else
                 // Otherwise continue adding to temp
                 temp += this.currChar
